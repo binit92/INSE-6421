@@ -1,0 +1,229 @@
+################################ Required Files and TEsts ####################################################################
+All required files are present :+1:
++ It is recommended to export your conda environment into environment.yaml file. command **conda env export -f environment.yaml**, so that you can recreate your conda environment later.
++ While submitting this to any version control system like Github, make sure to include helper, data and environment files and exclude and temp files. It will help you in future if you want to re-execute it. Some [guideline](https://udacity.github.io/git-styleguide/) for best practice.
+
+
+All required files are present :+1:
++ It is recommended to export your conda environment into environment.yaml file. command **conda env export -f environment.yaml**, so that you can recreate your conda environment later.
++ It is asked to submit .html version of notebook too so that anyone can easily open the notebook.
++ While submitting this to any version control system like Github, make sure to include helper, data and environment files and exclude and temp files. It will help you in future if you want to re-execute it. Some [guideline](https://udacity.github.io/git-styleguide/) for best practice.
+
+
+
+Well Done ! :+1:  Donald Knuth (a famous computer science pioneer) once famously said 
+> “Beware of bugs in the above code; I have only proved it correct, not tried it.”
+################################## PreProcessing #######################################################################
+Good work :+1:
++ In particular, using a python set function to ensure each entry in the vocab list is unique is an excellent technique to remove duplicates from a list, and something that you will find yourself doing as part of almost any dataset-preparation work.
++  when creating lookup tables it can also be helpful to index words by the frequency each word occurs in the text. The python Counter function (part of the collections library) is a convenient way to get the information needed for that approach. 
+https://pymotw.com/2/collections/counter.html
+```
+from collections import Counter
+
+ word_counts = Counter(text)
+    sorted_words = sorted(word_counts, key=word_counts.get, reverse=True)
+    vocab_to_int = dict()
+    int_to_vocab = dict()
+    
+    for i, word in enumerate(sorted_words):
+        vocab_to_int[word] = i
+        int_to_vocab[i] = word
+    return vocab_to_int, int_to_vocab
+```	
+
+
+:+1: 
++ when creating lookup tables it is helpful to index words by the frequency each word occurs in the text. The python Counter function (part of the collections library) is a convenient way to get the information needed for that approach. 
+
+##########################################################################################################################3
+
+:+1:
++ Converting each punctuation into explicit token is very handy when working with RNNs.
++ All 10 entries are present 
++ Do read up this [link](https://datascience.stackexchange.com/a/11421) to understand what other pre-processing steps are carried out before feeding text data to RNNs.
++ An alternate implementation would be : 
+```
+ return {
+        '.'  : '||period||',
+        ','  : '||comma||',
+        '"'  : '||quotationmark||',
+        ';'  : '||semicolon||',
+        '!'  : '||exclamationmark||',
+        '?'  : '||questionmark||',
+        '('  : '||leftparentheses',
+        ')'  : '||rightparentheses',
+        '--' : '||doubledash||',
+        '\n' : '||return||'
+   }
+```  
+
+#########################################################################################################################
+Batching DATA 
+############################
+
+
+Good Job :clap:
++ breaks up word id's into the appropriate sequence lengths 
++ It is recommend to add explanatory comments in between, for example :
+```
+    # get number of targets we can make
+    n_targets = len(words) - sequence_length
+    # initialize feature and target 
+    feature, target = [], []
+    # loop through all targets we can make
+    for i in range(n_targets):
+        x = words[i : i+sequence_length]    # get some words from the given list
+        y = words[i+sequence_length]        # get the next word to be the target
+        feature.append(x)
+        target.append(y)
+    
+    feature_tensor, target_tensor = torch.from_numpy(np.array(feature)), torch.from_numpy(np.array(target))
+    # create data
+    data = TensorDataset(feature_tensor, target_tensor)
+    # create dataloader
+    dataloader = DataLoader(data, batch_size=batch_size, shuffle=True)
+     # return a dataloader
+    return dataloader
+```
+
+
+:+1:
++ good job
++ :triangular_flag_on_post: You are encouraged to enable print statement so that reviewer can see the  output on sample data
+
+
+:+1: 
++ Data is converted into Tensors and formatted with TensorDataset.
++ Alternatively, you are allowed to create a batch_data function of their own, and skip the TensorDataset and DataLoader creation. Instead they may choose to create a generator that batches data similarly but returns x and y batches using `yield`.
++ Good job adding debug print statement  to verify outputs
+
+:+1: 
++ `batch_data` returns a DataLoader for the batched training data.
+
+#####################################################################################################33
+
+:+1:
++ `__init__`, `forward` and `init_hidden` functions are complete
++ it is recommended to remove unnecessary/unused methods from the code
+
+
+:+1: 
++ The RNN inclue an LSTM and one fully-connected layer. 
++ good job including an embedding layer before the LSTM. The fully connected layer comes at the end 
+
+
+
+############################################################################################################33
+RNN Training 
+
+The ideal structure is as follows:
+
++ Embedding layer (nn.Embedding) before the LSTM or GRU layer.
++ The fully-connected layer comes at the end to get our desired number of outputs.
++ Extra marks for not using a dropout after LSTM and before FC layer, as the drop out is already incorporated in the LSTMs, A lot of students will add it and then end up finding convergence difficult
++ You can try to add more than one fc:
+```
+# init
+self.fcc=nn.Linear(self.hidden_dim, self.hidden_dim)
+self.fcc2=nn.Linear(self.hidden_dim,self.output_size)
+....
+# forward
+output,hidden=self.lstm(embedded,hidden)
+lstm_output = output.contiguous().view(-1, self.hidden_dim)
+output=self.dropout(output) 
+output= self.fcc(output)
+output=self.dropout(output)
+output=self.fcc2(output)
+```        		
+
+#############################################################################################################
+Hyperparameters 
+#############################################################################################################
+
+:rocket:
++ Enough epochs to get near a minimum in the training loss. Do not hesitate to use a value as big as needed till the loss the improving
++ Batch size is large enough to train efficiently  
++ Sequence length is about the size of the length of sentences we want to generate 
++ Size of embedding is in the range of [200-300] 
++ Learning rate seems good based on other hyper parameter 
+
+> Your efforts shows that you have really have executed it again and again to get an optimized value :fire:
+
+
+
+You have selected good hyperparameter values but try to make loss value less than 3.5:
+
+Generally recommended values are:
+
+Sequence Length: Chose a sequence length of 50 to give the network a context of approximately 10 script lines on average to consider during training. This can be derived from the fact that the average number of words per line would be around 5.5.
+
+Epochs: Start out with 10 epochs as a first trial run to make sure the network would train and increased it to 20 thereafter. So you can have better look at loss value.
+
+Batch Size: Initially start with 256 as an arbitrary start point and see that if the network was training efficiently if not then try to break it 128 for more batch training per epochs.
+
+Embedding Dimension: the vocab contained ~46,367 unique words. Now you can try to cut this down significantly by 98% to 1000 embeddings.
+
+Hidden Dimension: 128-256 hidden dimensions to give the network a solid amount of features/states to learn from.
+
+n_layers: Choosing 2-3 layers would have more benefits since you've learned in the coursework. Try to find out which works best
+
+lr: Not too big to cause no convergence and not too small to cause slow convergence.
+
+
+Generally recommended values are:
+Sequence Length: Chose a sequence length of 50 to give the network a context of approximately 10 script lines on average to consider during training. This can be derived from the fact that the average number of words per line would be around 5.5.
+Epochs: Start out with 10 epochs as a first trial run to make sure the network would train and increased it to 20 thereafter. So you can have better look at loss value.
+Batch Size: Initially start with 256 as an arbitrary start point and see that if the network was training efficiently if not then try to break it 128 for more batch training per epochs.
+Embedding Dimension: the vocab contained ~46,367 unique words. Now you can try to cut this down significantly by 98% to 1000 embeddings.
+Hidden Dimension: 128-256 hidden dimensions to give the network a solid amount of features/states to learn from.
+n_layers: Choosing 2-3 layers would have more benefits since you've learned in the coursework. Try to find out which works best
+lr: Not too big to cause no convergence and not too small to cause slow convergence.
+
+	
+######################################################################################################################################################
+Congratulations :tada: 
++ Your submission reveals that you have made an **excellent effort** in finishing this project. It is an important milestone in learning about RNNs
++ Very good hyperparameters and loss . It is great that you have got everything right in first review :+1:
++ I wish you all the best for next adventures :rocket:
+
+
++ Nice Read: (Colah's Blog)   http://colah.github.io/posts/2015-08-Understanding-LSTMs/
++ Nice Read: (Andrej Karpathy) : http://karpathy.github.io/2015/05/21/rnn-effectiveness/
++ Nice Read: (Rohan Kapur) https://ayearofai.com/rohan-lenny-3-recurrent-neural-networks-10300100899b
+
+Keep up the good work :+1:  Stay Udacious :udacious:
+
+
+
+Congratulations :tada:
++ I recommend you to keep this project saved somewhere so that you can refer it . probably github, bitbucket,gitlab or google drive.
+
+You can try applying what you learned to one of these problems.
+
+Generate your own Bach music using like [DeepBach](https://arxiv.org/pdf/1612.01010.pdf)
+Predict seizures in intracranial EEG recordings on [Kaggle](https://www.kaggle.com/c/seizure-prediction)
+
+
+
+:fire: 
++ You have made an **excellent effort** in finishing this project. This is an important mile stone in  deep-learning. 
++ With suggested changes in hyperparameters, I am sure you will be able to get a loss less than 3.5 :checkered_flag: 
++ Very good hyperparameters and loss . It is great that you have got everything right in first review :+1:
++ In case of doubts, You can find pointers from mentors and `discussions.udacity.com` and `knowledge.udacity.com`
++ Nice Read: (Colah's Blog)   http://colah.github.io/posts/2015-08-Understanding-LSTMs/
++ Nice Read: (Andrej Karpathy) : http://karpathy.github.io/2015/05/21/rnn-effectiveness/
++ Nice Read: (Rohan Kapur) https://ayearofai.com/rohan-lenny-3-recurrent-neural-networks-10300100899b
+
+Keep up the good work :+1:  Stay Udacious :udacious:
+
+Excellent  :rocket:
++ Your submission reveals that you have made a **great effort** in finishing this project. It is an important milestone in learning about RNNs
++ Very good hyperparameters and loss . It is great that you have got everything right in first review :+1:
++ Just add randomness in picking next word and you are good to go ! :checkered_flag:
++ Nice Read: (Colah's Blog)   http://colah.github.io/posts/2015-08-Understanding-LSTMs/
++ Nice Read: (Andrej Karpathy) : http://karpathy.github.io/2015/05/21/rnn-effectiveness/
++ Nice Read: (Rohan Kapur) https://ayearofai.com/rohan-lenny-3-recurrent-neural-networks-10300100899b
+
+Keep up the good work !  :+1: Stay Udacious :udacious:
+ 
